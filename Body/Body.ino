@@ -25,6 +25,20 @@ BUT2  15 (A1)
 BUT3  16 (A2)
 */
 
+//I2C
+#include <Wire.h>
+#include <iarduino_I2C_connect.h> 
+
+iarduino_I2C_connect MASTER;
+
+bool LEFT_IR_VAR  = 0;
+bool RIGHT_IR_VAR = 0;
+byte US_VAR       = 0;
+bool BUT1_VAR     = 0;
+bool BUT2_VAR     = 0;
+bool BUT3_VAR     = 0;
+byte RFID_VAR     = 0;
+
 //RFID
 #include <SPI.h>
 #include <MFRC522.h>
@@ -38,8 +52,8 @@ MFRC522 rfid(SS, RST);
 #include <LCD12864RSPI.h>
 #define AR_SIZE(a) sizeof(a) / sizeof(a[0])
 
-unsigned char test_en[] = "TEST";
-unsigned char test_ru[] = "ТЕСТ";
+unsigned char test_en[]   = "TEST";
+unsigned char test_ru[]   = "ТЕСТ";
 unsigned char test_rfid[] = "RFID:";
 
 //Ultrasonic
@@ -60,6 +74,8 @@ Ultrasonic US(TRIG, ECHO);
 #define BUT3  16
 
 void setup() {
+  Wire.begin();
+
   SPI.begin();
   rfid.PCD_Init();
 
@@ -76,6 +92,13 @@ void setup() {
 }
 
 void loop() {
+  LEFT_IR_VAR = digitalRead(LEFT_IR);
+  RIGHT_IR_VAR = digitalRead(RIGHT_IR);
+  US_VAR = US.Ranging(CM);
+  BUT1_VAR = digitalRead(BUT1);
+  BUT2_VAR = digitalRead(BUT2);
+  BUT3_VAR = digitalRead(BUT3);
+  
   LCDA.CLEAR();
   delay(100);
   LCDA.DisplayString(0, 0, test_en, 16);  //Тест английских символов
@@ -100,5 +123,16 @@ void loop() {
     delay(10);
     Serial.println(ID32, HEX);    
   }
+
+  MASTER.writeByte(0x01, 0, LEFT_IR_VAR);
+  MASTER.writeByte(0x01, 1, RIGHT_IR_VAR);
+  MASTER.writeByte(0x01, 2, US_VAR);
+  MASTER.writeByte(0x01, 3, BUT1_VAR);
+  MASTER.writeByte(0x01, 4, BUT2_VAR);
+  MASTER.writeByte(0x01, 5, BUT3_VAR);
+  MASTER.writeByte(0x01, 6, RFID_VAR);
+  
+  MASTER.writeByte(0x02, 0, US_VAR);
+
   delay(500);
 }
